@@ -1,0 +1,1 @@
+<?php getMasterTemplate("404");?>

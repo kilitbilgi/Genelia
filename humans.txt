@@ -1,0 +1,23 @@
+/* TEAM */
+Designer:stiltasarım
+From:Turkey
+Web:www.webziga.com
+
+Developer:kilitbilgi
+Twitter:@burak1colak
+From:Izmir , Turkey
+Web:www.kilitbilgi.com
+
+/* THANKS */
+For HTML Framework:Twitter
+Twitter:@twitter
+Web: www.twitter.com
+Web: www.getbootstrap.com
+   
+For WP Framework:ghost1227
+
+/* SITE */
+Last update:10/02/2014
+Language: Turkish
+Doctype:HTML5
+IDE: Notepad++, FileZilla, Photoshop
