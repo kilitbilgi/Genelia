@@ -4,6 +4,10 @@ add_theme_support('post-thumbnails');
 require_once(get_template_directory().'/admin/framework.php');
 require_once(get_template_directory().'/admin/config/config.php');
 
+function genelia_header_menu() {
+  register_nav_menu('header-menu',__( 'Genelia Header Menu' ));
+}
+add_action( 'init', 'genelia_header_menu' );
 add_action('admin_print_footer_scripts','video_buttons');
 function video_buttons() {
 ?>
@@ -76,25 +80,43 @@ $pageArgs = array('number'=>4,'post_type'=>'page','post_status'=>'publish','titl
 wp_list_pages($pageArgs);
 }
 
+function related_posts() {
+global $post;
+$categories = get_the_category($post->ID);
+if($categories){
+$cat_id = $categories[0]->term_id;
+}
+$args = array(
+'posts_per_page' => 5,
+'category__in'=>$cat_id
+); 
+$the_query = new WP_Query( $args ); 
+?>
+
+<section id="related_posts">
+<?php while ( $the_query->have_posts() ) : $the_query->the_post();?>
+</section>
+
+<section class="related_item item">
+<?php if (has_post_thumbnail()){ ?> 
+<section class="related_thumb">
+<a href="<?php the_permalink(); ?>">
+<?php the_post_thumbnail( 'related-post' ); ?></a>
+</section>
+<?php }else{?>
+<section class="related_thumb">
+<a href="<?php the_permalink(); ?>"><img src="<?php echo themeBase()."/images/no-image.png"?>" alt="related"/></a>
+</section>
+<?php }?>
+<?php
+endwhile; 
+echo '<div class="clearfix"></div>'; 
+wp_reset_postdata(); 
+}
+
 function getMasterTemplate($var){
 
 switch($var){
-case "navbar":
-?>
-	<div id="navbar">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-12">
-					<ul class="nav-menu">
-						<?php masterFilmGetPages();?>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="fluidContainer" id="seperateLine"></div>
-<?php
-break;
 case "header":
 global $optVar;
 ?>
@@ -131,21 +153,33 @@ break;
 case "topbar":
 global $optVar;
 ?>
-	<div id="topbar">
+	<div id="topbar" <?php if(@$optVar["topbar-isFixed"]==1){?>data-spy="affix" data-offset-top="60" data-offset-bottom="200"<?php }?>>
 		<div class="container">
 			<div class="pull-left">
-				<ul class="navigation clearfix">
-					<li><a title="Anasayfa" data-placement="bottom" href="<?php bloginfo("url");?>"><p class="home-icon"></p></a></li>
+				<ul class="navigation clearfix hidden-xs">
+					<?php if($optVar["homeMenuActive"]==1){?><li><a title="Anasayfa" data-placement="bottom" href="<?php bloginfo("url");?>"><p class="home-icon"></p></a></li><?php }?>
+					<?php if($optVar["catMenuActive"]==1){?>
 					<li class="dropdown">
 					<a data-toggle="dropdown" href="#"><h2 class="topbar-headings">Kategoriler</h2></a>
 						<ul class="dropdown-menu"><?php cat_run();?></ul>
 					</li>
+					<?php }?>
+					<?php if($optVar["pageMenuActive"]==1){?>
 					<li class="dropdown">
 						<a data-toggle="dropdown" href="#"><h2 class="topbar-headings">Sayfalar</h2></a>
 						<ul class="dropdown-menu">
 							<?php GetPages();?>
 						</ul>
 					</li>
+					<?php }?>
+					<?php 
+					$navmenu_args = array(
+					'container' => '',
+					'menu'=>'genelia_header_menu',
+					'items_wrap' => '%3$s'
+					);
+					wp_nav_menu($navmenu_args);
+					?>
 				</ul>
 			</div>
 			<div class="pull-right">
@@ -155,7 +189,7 @@ global $optVar;
 				<div class="login-button"><a href="<?php echo wp_login_url(home_url());?>">Giriş</a></div>
 				<div class="register-button"><a href="<?php echo wp_registration_url();?>">Kayıt Ol</a></div>
 			<?php }?>
-				<div class="search-button"><a href="#"><p class="search-icon"></p></a>
+				<div class="search-button hidden-xs"><a href="#"><p class="search-icon"></p></a>
 					<div class="search-form">
 						<form role="search" method="get" action="<?php echo home_url('/');?>">
 							<input type="text" class="hide" id="search_input" name="s" placeholder="Arama Yap"/>
@@ -252,6 +286,7 @@ $wp_query = $custom_query;
 						<p><?php _e('Henüz hiç mesajını yok'); ?></p>
 						<?php endif;wp_reset_query();?>
 					</div>
+					<?php if($optVar["sharePostActive"]==1){?>
 					<div class="clearfix">
 						<div class="comment-title clearfix">
 							<h2>Yazıyı Paylaş</h2>
@@ -265,10 +300,21 @@ $wp_query = $custom_query;
 							<a class="a2a_button_google_plus"></a>
 							<a class="a2a_button_pinterest"></a>
 							</div>
-							<script type="text/javascript" src="//static.addtoany.com/menu/page.js"></script>
+							<script type="text/javascript" src="http://static.addtoany.com/menu/page.js"></script>
 							<!-- AddToAny END -->
 						</div>
 					</div>
+					<?php }?>
+					<?php if($optVar["relatedPostActive"]==1){?>
+					<div class="clearfix">
+						<div class="comment-title clearfix">
+							<h2>Benzer Yazılar</h2>
+						</div>
+						<div class="clearfix">
+							<?php related_posts();?>
+						</div>
+					</div>
+					<?php }?>
 					<div class="comment-split clearfix">
 						<div class="comment-title clearfix">
 							<h2>Yorumlar</h2>
@@ -328,10 +374,14 @@ $google_analtyics_id = trim($optVar['google_analytics_id']);
 if($google_analtyics_id!=""){
 ?>
 <script>
-        window._gaq = [['_setAccount','<?php echo $google_analtyics_id;?>'],['_trackPageview'],['_trackPageLoadTime']];
-        Modernizr.load({
-          load: ('https:' == location.protocol ? '//ssl' : '//www') + '.google-analytics.com/ga.js'
-        });
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', '<?php echo $google_analtyics_id;?>', '<?php bloginfo("url");?>');
+  ga('send', 'pageview');
+
 </script>
 <?php }?>
 <!--[if lt IE 7 ]>
@@ -387,7 +437,6 @@ global $optVar;
 <!--<![endif]-->
 <head>
 <meta charset="<?php bloginfo('charset');?>"/>
-<meta name="viewport" content="width=device-width" />
 <title><?php get_site_title();?></title>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <?php 
@@ -456,12 +505,18 @@ return $myExcerpt;
 function the_breadcrumb() {
 	if (!is_home()) {
 		?>
-		<span class="home-text">Anasayfa ></span>
+		<span class="home-text"><a href="<?php bloginfo("url");?>">Anasayfa</a> ></span>
 		<span class="home-text">
 		<?php
-		if (is_category() || is_single()) {
-			getFirstCat();
-			?>
+			if (is_category() || is_single()) {
+			global $post;
+			$categories = get_the_category( $post->ID );
+			if($categories)
+			$cat_id = $categories[0]->term_id;
+		?>
+		<a href="<?php echo get_category_link($cat_id);?>">
+		<?php getFirstCat();?>
+		</a>
 			</span>
 			<span class="home-text">
 			<?php
@@ -470,10 +525,12 @@ function the_breadcrumb() {
 			?>
 			</span>
 			<span class="title-text">
+			<a href="<?php the_permalink();?>">
 			<?php
 				echo the_title();
 			}
 			?>
+			</a>
 			</span>
 			<?php
 		} elseif (is_page()) {
@@ -488,11 +545,10 @@ function the_breadcrumb() {
 	}
 }
 
-class GetPosts{
-function __construct(){
-$allPost = array();
+function new_excerpt_more( $more ) {
+	return ' <a class="read-more" href="'. get_permalink( get_the_ID() ) . '">[...]</a>';
 }
-}
+add_filter( 'excerpt_more', 'new_excerpt_more' );
 
 function templateBase(){
 global $wp_query,$query_string,$optVar;
@@ -508,6 +564,7 @@ $isSliderActive  = $optVar["slider-isActive"];
 					<div id="carousel-run-it" class="carousel slide" data-ride="carousel">
 						<!-- Indicators -->
 						<?php $postLimitSlider = 10;$i=0;?>
+						<?php if($optVar["slider-isAuto"]==1){?>
 						<ol class="carousel-bullets carousel-indicators">
 							<?php while($i!=$postLimitSlider){?>
 							<li data-target="#carousel-run-it" data-slide-to="<?php echo $i;?>"></li>
@@ -540,12 +597,55 @@ $isSliderActive  = $optVar["slider-isActive"];
 						<a class="carousel-nav-right" href="#carousel-run-it" data-slide="next">
 							<p class="control-icon-right"></p>
 						</a>
+						<?php }
+						else{
+						$sliderData = $optVar["slider-slides"];
+						?>
+						<ol class="carousel-bullets carousel-indicators">
+							<?php while($i!=$postLimitSlider){?>
+							<li data-target="#carousel-run-it" data-slide-to="<?php echo $i;?>"></li>
+							<?php $i++;}?>
+						</ol>
+
+						<!-- Wrapper for slides -->
+						<div class="carousel-inner">
+						<?php
+						$i=0;
+						foreach($sliderData as $getData){
+						if($postLimitSlider==$i){break;}
+						?>
+							<div class="item">
+							<?php if($getData["image"]!=""){
+							?>
+							<img src="<?php echo $getData["image"];?>" alt="<?php echo $getData["title"];?>"/>
+							<?php }else {?>
+							<div class="no-slide"></div>
+							<?php }?>
+							  <div class="carousel-title-caption">
+								<a class="popInfo" data-trigger="hover" data-container="body" data-toggle="popover" data-placement="top" data-content="
+								<?php $myExcerpt = $getData["description"];
+								echo $myExcerpt;?>" href="<?php echo $getData["url"];?>"><?php echo $getData["title"];?></a>
+							  </div>
+							</div>
+						<?php 
+						$i++;
+						}?>
+						</div>
+
+						<!-- Controls -->
+						<a class="carousel-nav-left" href="#carousel-run-it" data-slide="prev">
+							<p class="control-icon-left"></p>
+						</a>
+						<a class="carousel-nav-right" href="#carousel-run-it" data-slide="next">
+							<p class="control-icon-right"></p>
+						</a>
+						<?php }?>
 					</div>
 					<?php }?>
 					<div id="posts">
 					<?php if ( have_posts() ) : while ( have_posts() ) : the_post();?>
 						<div class="post clearfix">
-							<div class="pull-left post-image">
+							<div class="pull-left post-image hidden-xs">
 					<?php if ( has_post_thumbnail() ) {the_post_thumbnail();}
 					else{?>
 					<div class="no-image"></div>
@@ -559,11 +659,9 @@ $isSliderActive  = $optVar["slider-isActive"];
 									<h1><a href="<?php the_permalink();?>"><?php the_title();?></a></h1>
 								</div>						
 								<div class="clearfix post-content pull-left">
-									<p>
-									<?php echo filteredExcerpt();?>
-									</p>
+									<?php the_excerpt();?>
 								</div>
-								<div class="clearfix post-details pull-left">
+								<div class="clearfix post-details pull-left hidden-xs">
 									<ul class="details-menu">
 										<li><a href="<?php the_permalink();?>"><?php the_author();?></a></li>
 										<li><span><?php the_time(get_option('date_format')); ?></span></li>
@@ -1208,7 +1306,6 @@ bloginfo('name');
 $site_description = get_bloginfo('description', 'display');
 if ($site_description && (is_home() || is_front_page())) echo " | $site_description";
 }
-
 function get_site_desc(){
 echo get_bloginfo("description");
 }

@@ -304,7 +304,13 @@ if (!function_exists('redux_init')) :
 				'compiler' => 'true',
 				'desc'=> __('', 'redux-framework-demo'),
 				'subtitle' => __('', 'redux-framework-demo'),
-				),
+				),	
+			array(
+				'id'=>'topbar-isFixed',
+				'type' => 'switch',
+				'title' => __('Üst Menü Sabitlemeyi Aç/Kapat', 'redux-framework-demo'), 
+				'default'=>false,
+				),					
 		)
 	);
 	
@@ -436,6 +442,17 @@ if (!function_exists('redux_init')) :
 				'type' => 'switch',
 				'title' => __('Manşet Aç/Kapat', 'redux-framework-demo'), 
 				'default'=>true,
+				),				
+			array(
+				'id'=>'slider-isAuto',
+				'type' => 'switch',
+				'title' => __('Konuları Otomatik Ekle', 'redux-framework-demo'), 
+				'default'=>true,
+				),				
+			array(
+				'id'=>'slider-slides',
+				'type' => 'slides',
+				'title' => __('Manşet Öğesi Ekle', 'redux-framework-demo'), 
 				),	
 			)
 
@@ -463,9 +480,49 @@ if (!function_exists('redux_init')) :
 				'default'=>true,
 				),				
 			array(
+				'id'=>'homeMenuActive',
+				'type' => 'switch',
+				'title' => __('Anasayfa İkonunu Aç/Kapat', 'redux-framework-demo'), 
+				'subtitle' => __('', 'redux-framework-demo'),
+				'desc' => __('', 'redux-framework-demo'),
+				'default'=>true,
+			),				
+			array(
+				'id'=>'pageMenuActive',
+				'type' => 'switch',
+				'title' => __('Sayfalar Menüsünü Aç/Kapat', 'redux-framework-demo'), 
+				'subtitle' => __('', 'redux-framework-demo'),
+				'desc' => __('', 'redux-framework-demo'),
+				'default'=>true,
+			),				
+			array(
+				'id'=>'catMenuActive',
+				'type' => 'switch',
+				'title' => __('Kategoriler Menüsünü Aç/Kapat', 'redux-framework-demo'), 
+				'subtitle' => __('', 'redux-framework-demo'),
+				'desc' => __('', 'redux-framework-demo'),
+				'default'=>true,
+			),	
+			array(
 				'id'=>'scrolltopActive',
 				'type' => 'switch',
 				'title' => __('Yukarı Git Eklentisi Aç/Kapat', 'redux-framework-demo'), 
+				'subtitle' => __('', 'redux-framework-demo'),
+				'desc' => __('', 'redux-framework-demo'),
+				'default'=>true,
+				),				
+			array(
+				'id'=>'sharePostActive',
+				'type' => 'switch',
+				'title' => __('Yazıyı Paylaş Bölümünü Aç/Kapat', 'redux-framework-demo'), 
+				'subtitle' => __('', 'redux-framework-demo'),
+				'desc' => __('', 'redux-framework-demo'),
+				'default'=>true,
+				),				
+			array(
+				'id'=>'relatedPostActive',
+				'type' => 'switch',
+				'title' => __('Benzer Yazılar Bölümünü Aç/Kapat', 'redux-framework-demo'), 
 				'subtitle' => __('', 'redux-framework-demo'),
 				'desc' => __('', 'redux-framework-demo'),
 				'default'=>true,
